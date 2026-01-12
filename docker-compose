@@ -1,0 +1,66 @@
+version: "3.8"
+
+services:
+  authentik-server:
+    image: ghcr.io/goauthentik/server:latest
+    container_name: authentik-server
+    ports: 
+      - "127.0.0.1:9001:9000"
+    environment:
+      AUTHENTIK_SECRET_KEY: "CHANGE_THIS_TO_A_LONG_RANDOM_STRING"
+      AUTHENTIK_POSTGRESQL__HOST: authentik-db
+      AUTHENTIK_POSTGRESQL__USER: authentik
+      AUTHENTIK_POSTGRESQL__PASSWORD: authentikpass
+      AUTHENTIK_POSTGRESQL__NAME: authentik
+      AUTHENTIK_REDIS__HOST: authentik-redis
+    volumes:
+      - authentik-media:/media
+      - authentik-templates:/templates
+    depends_on:
+      - authentik-db
+      - authentik-redis
+    restart: unless-stopped
+
+  authentik-worker:
+    image: ghcr.io/goauthentik/server:latest
+    container_name: authentik-worker
+    command: worker
+    environment:
+      AUTHENTIK_SECRET_KEY: "CHANGE_THIS_TO_A_LONG_RANDOM_STRING"
+      AUTHENTIK_POSTGRESQL__HOST: authentik-db
+      AUTHENTIK_POSTGRESQL__USER: authentik
+      AUTHENTIK_POSTGRESQL__PASSWORD: authentikpass
+      AUTHENTIK_POSTGRESQL__NAME: authentik
+      AUTHENTIK_REDIS__HOST: authentik-redis
+    volumes:
+      - authentik-media:/media
+      - authentik-templates:/templates
+    depends_on:
+      - authentik-db
+      - authentik-redis
+    restart: unless-stopped
+
+  authentik-db:
+    image: postgres:15
+    container_name: authentik-db
+    environment:
+      POSTGRES_USER: authentik
+      POSTGRES_PASSWORD: authentikpass
+      POSTGRES_DB: authentik
+    volumes:
+      - authentik-db:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  authentik-redis:
+    image: redis:7
+    container_name: authentik-redis
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+    volumes:
+      - authentik-redis:/data
+    restart: unless-stopped
+
+volumes:
+  authentik-media:
+  authentik-templates:
+  authentik-db:
+  authentik-redis:
