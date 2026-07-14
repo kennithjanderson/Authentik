@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   authentik-server:
-    image: ghcr.io/goauthentik/server:latest
+    image: ghcr.io/goauthentik/server:${APP_VERSION}
     container_name: authentik-server
     ports: 
       - "127.0.0.1:9001:9000"
@@ -22,7 +22,7 @@ services:
     restart: unless-stopped
 
   authentik-worker:
-    image: ghcr.io/goauthentik/server:latest
+    image: ghcr.io/goauthentik/server:${APP_VERSION}
     container_name: authentik-worker
     command: worker
     environment:
